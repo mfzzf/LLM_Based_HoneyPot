@@ -18,6 +18,7 @@ import (
 type Logger interface {
 	LogRequest(req *http.Request) string
 	LogResponse(reqID string, resp *http.Response, body []byte)
+	LogAdmission(reqID string, allowed bool, reason string)
 	Close() error
 }
 
@@ -77,6 +78,16 @@ type LLMResponseInfo struct {
 	Response      string `json:"response,omitempty"` // chat API返回
 	Finished      bool   `json:"finished,omitempty"`
 	TotalDuration int64  `json:"total_duration,omitempty"`
+}
+
+// AdmissionLog 准入控制日志结构
+type AdmissionLog struct {
+	RequestID string `json:"request_id"`
+	Timestamp string `json:"@timestamp"`
+	Allowed   bool   `json:"allowed"`
+	Content   string `json:"content"`
+	Reason    string `json:"reason,omitempty"`
+	ModelName string `json:"model_name,omitempty"`
 }
 
 // NewELKLogger 创建一个新的ELK日志记录器
@@ -342,6 +353,48 @@ func parseOllamaResponse(path string, bodyBytes []byte) *LLMResponseInfo {
 	}
 
 	return info
+}
+
+// LogAdmission 记录准入控制结果
+func (l *ELKLogger) LogAdmission(reqID string, allowed bool, reason string) {
+	// 始终记录到终端
+	if allowed {
+		log.Printf("[准入控制] 请求ID: %s - 允许访问", reqID)
+	} else {
+		log.Printf("[准入控制] 请求ID: %s - 拒绝访问: %s", reqID, reason)
+	}
+
+	if !l.enabled {
+		return
+	}
+
+	// 记录到ELK
+	admLog := AdmissionLog{
+		RequestID: reqID,
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
+		Allowed:   allowed,
+		Reason:    reason,
+	}
+
+	// 发送到Elasticsearch
+	jsonData, err := json.Marshal(admLog)
+	if err != nil {
+		log.Printf("无法序列化准入控制日志: %v", err)
+		return
+	}
+
+	// 使用专门的准入控制索引
+	admissionIndex := l.index + "-admission"
+
+	_, err = l.esClient.Index(
+		admissionIndex,
+		strings.NewReader(string(jsonData)),
+		l.esClient.Index.WithContext(context.Background()),
+	)
+
+	if err != nil {
+		log.Printf("无法发送准入控制日志到Elasticsearch: %v", err)
+	}
 }
 
 // Close 关闭日志记录器

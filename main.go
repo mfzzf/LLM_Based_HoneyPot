@@ -52,7 +52,12 @@ func main() {
 	defer loggerInstance.Close()
 
 	// 创建代理服务器
-	proxyServer, err := proxy.NewOllamaProxy(cfg.ListenAddr, cfg.TargetAddr, loggerInstance)
+	proxyServer, err := proxy.NewOllamaProxy(
+		cfg.ListenAddr,
+		cfg.TargetAddr,
+		loggerInstance,
+		cfg.Admission,
+	)
 	if err != nil {
 		log.Fatalf("无法创建代理服务器: %v", err)
 	}

@@ -76,7 +76,27 @@ go run main.go -config config.json
 
 ## 准入控制
 
-未来将添加准入控制模块，用于限制和审核对 Ollama 的请求。
+代理服务器支持内容准入控制，可以拦截不合规的请求，配置项包括：
+
+- `enabled`: 是否启用准入控制
+- `model_name`: 用于内容审核的Ollama模型
+- `ollama_url`: 用于审核的Ollama服务地址
+- `timeout_seconds`: 审核请求超时时间
+- `max_retries`: 审核请求失败重试次数
+
+准入控制会自动拦截包含制造炸药、武器或其他违规内容的请求，并返回友好的拒绝信息。
+
+配置示例：
+
+```json
+"admission": {
+  "enabled": true,
+  "model_name": "phi3:latest",
+  "ollama_url": "http://localhost:11434",
+  "timeout_seconds": 5,
+  "max_retries": 2
+}
+```
 
 ## 构建
 

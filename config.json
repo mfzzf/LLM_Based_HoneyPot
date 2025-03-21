@@ -7,6 +7,14 @@
     "url": "http://10.255.248.65:9200",
     "username": "elastic",
     "password": "H3JIfzF2Ic*dbRj4c5Kd",
+    "api_key": "",
     "index": "ollama-proxy"
+  },
+  "admission": {
+    "enabled": true,
+    "model_name": "phi3:3.8b",
+    "ollama_url": "http://10.255.248.65:11434",
+    "timeout_seconds": 5,
+    "max_retries": 2
   }
 }
