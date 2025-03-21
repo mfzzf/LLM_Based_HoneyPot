@@ -1,0 +1,12 @@
+{
+  "listen_addr": ":8080",
+  "target_addr": "http://10.255.248.65:11434",
+  "log_enabled": true,
+  "elk": {
+    "enabled": true,
+    "url": "http://10.255.248.65:9200",
+    "username": "elastic",
+    "password": "H3JIfzF2Ic*dbRj4c5Kd",
+    "index": "ollama-proxy"
+  }
+}
